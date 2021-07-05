@@ -4,7 +4,7 @@
       "type": "custom",
       "build": "cargo build --target wasm32-unknown-unknown --release",
       "candid": "src/read_rs.did",
-      "wasm": "target/wasm32-unknown-unknown/release/read_rs_opt.wasm"
+      "wasm": "./read_rs_opt.wasm"
     }
   },
   "dfx": "0.7.2",

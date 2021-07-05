@@ -18,5 +18,3 @@ dfn_candid = { git="https://github.com/dfinity/ic" }
 ic-types = { git="https://github.com/dfinity/ic" }
 serde = "1.0"
 candid = "0.6.21"
-prost = "0.7.0"
-prost-types = "0.7.0"

@@ -1,0 +1,17 @@
+[package]
+name = "read_rs"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "read_rs"
+path = "src/main.rs"
+
+
+[dependencies]
+ledger-canister = { git="https://github.com/dfinity/ic" }
+dfn_core = { git="https://github.com/dfinity/ic" }
+dfn_protobuf = { git="https://github.com/dfinity/ic" }
+dfn_candid = { git="https://github.com/dfinity/ic" }

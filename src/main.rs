@@ -74,6 +74,14 @@ async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
     result.unwrap()
 }
 
+#[export_name = "canister_update block"]
+fn block() {
+    over_async(candid_one, | bh: BlockHeight| {
+        get_block_from_ledger(bh)
+    })
+}
+
+#[candid_method(update, rename = "block")]
 async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
     let res: Result<BlockRes, (Option<i32>, String)> = call_with_cleanup(
         LEDGER,

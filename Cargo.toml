@@ -17,4 +17,6 @@ dfn_protobuf = { git="https://github.com/dfinity/ic" }
 dfn_candid = { git="https://github.com/dfinity/ic" }
 ic-types = { git="https://github.com/dfinity/ic" }
 serde = "1.0"
-candid = "0.6.21"
+# ic-cdk = { version = "0.2.4", default-features = false }
+# ic-cdk-macro = { version = "0.2.4", default-features = false }
+candid = "0.6.15"

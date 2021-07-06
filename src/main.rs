@@ -1,70 +1,78 @@
 use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs, 
     account_identifier::AccountIdentifier, icpts::ICPTs, BlockHeight
 };
-use dfn_core::{
-    api::call_with_cleanup,
-    over, over_async, over_init
-};
+use dfn_core::{api::call_with_cleanup, over, over_async};
 use dfn_protobuf::{protobuf, ProtoBuf};
 use ic_types::CanisterId;
-use dfn_candid::{candid, candid_one, CandidOne};
-use serde::{
-    de::{Deserializer, MapAccess, Visitor},
-    ser::SerializeMap,
-    Deserialize, Serialize, Serializer,
-};
-use candid::{CandidType, Nat};
+use candid::{CandidType, candid_method};
+use dfn_candid::{candid, candid_one};
 
-static mut COUNTER: Option<Nat> = None;
+static mut COUNTER: u64 = 1u64;
 const LEDGER : CanisterId = CanisterId::from_u64(2);
 
-#[derive(Serialize, Deserialize, CandidType, Clone, Hash, Debug, PartialEq, Eq)]
-pub struct TotalSupplyArgs {}
 
-// #[export_name = "canister_init"]
-// fn main() {
-//     over_init(|CandidOne(())| init())
-// }
-
-// fn init() {
-//     unsafe {
-//         COUNTER = Some(Nat::from(1)); 
-//     }
-// }
-
-fn main() {
-}
 
 #[export_name = "canister_update increment"]
-fn increment_() {
-    over(candid_one, |()|  { increment() },)
+fn increment() {
+    over(candid, |()| increment_())
 }
 
-fn increment() {
-    unsafe { 
-        COUNTER.as_mut().unwrap().0 += 1u64;
+#[candid_method(update, rename = "increment")]
+fn increment_() {
+    unsafe {
+        COUNTER += 1u64;
     }
 }
 
 #[export_name = "canister_query get"]
-fn get_() {
-    over(candid_one, |()| -> candid::Nat { get() })
+fn get() {
+    over(candid, |()| -> u64 {
+        get_()
+    })
 }
 
-fn get() -> candid::Nat {
-    unsafe { COUNTER.as_mut().unwrap().clone() }
+#[candid_method(query, rename = "get")]
+fn get_() -> u64 {
+    unsafe {
+        COUNTER
+    }
 }
 
-// #[export_name = "canister_update set"]
-// fn set_() {
-//     over(candid_one, |SetArgs { input, } |  set(input),);
-// }
+#[export_name = "canister_update sum2"]
+fn combine2() {
+    over(candid, |(a, b): (u64, u64)| -> u64 {
+        sum2_(a, b)
+    })
+}
 
-// fn set(input: Nat) {
-//     unsafe {
-//         COUNTER.as_mut().unwrap().0 = input.0;
-//     }
-// }
+#[candid_method(update, rename = "sum2")]
+fn sum2_(a: u64, b: u64) -> u64 {
+    unsafe {
+        let x = a + b;
+        COUNTER = x;
+        COUNTER
+    }
+}
+
+#[export_name = "canister_update balance"]
+fn balance() {
+    over_async(candid_one, | account: AccountBalanceArgs| {
+        account_balance(account)
+    })
+}
+
+#[candid_method(update, rename = "balance")]
+async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
+    let result: Result<ICPTs, (Option<i32>, String)> = call_with_cleanup(
+        LEDGER,
+        "account_balance_pb",
+        protobuf,
+        account
+    )
+    .await;
+
+    result.unwrap()
+}
 
 async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
     let res: Result<BlockRes, (Option<i32>, String)> = call_with_cleanup(
@@ -79,14 +87,11 @@ async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
     block
 }
 
-async fn account_balance(account: AccountIdentifier) -> ICPTs {
-    let result: Result<ICPTs, (Option<i32>, String)> = call_with_cleanup(
-        LEDGER,
-        "account_balance_pb",
-        protobuf,
-        AccountBalanceArgs { account }
-    )
-    .await;
+#[cfg(any(target_arch = "wasm32", test))]
+fn main() {}
 
-    result.unwrap()
+#[cfg(not(any(target_arch = "wasm32", test)))]
+fn main() {
+    candid::export_service!();
+    std::print!("{}", __export_service());
 }

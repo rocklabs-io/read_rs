@@ -1,70 +1,51 @@
-use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs, 
-    account_identifier::AccountIdentifier, icpts::ICPTs, BlockHeight
-};
 use dfn_core::{api::call_with_cleanup, over, over_async};
 use dfn_protobuf::{protobuf, ProtoBuf};
 use ic_types::CanisterId;
 use candid::{CandidType, candid_method};
 use dfn_candid::{candid, candid_one};
+use ic_nns_handler_root::{
+    common::{CanisterIdRecord, CanisterStatusResult}};
+use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs, 
+    account_identifier::AccountIdentifier, icpts::ICPTs, BlockHeight
+};
 
-static mut COUNTER: u64 = 1u64;
-const LEDGER : CanisterId = CanisterId::from_u64(2);
 
+const IC_00: CanisterId = CanisterId::ic_00();
+const REGISTRY_CANISTER_ID: CanisterId = CanisterId::from_u64(0);
+const GOVERNANCE_CANISTER_ID: CanisterId = CanisterId::from_u64(1);
+const LEDGER_CANISTER_ID: CanisterId = CanisterId::from_u64(2);
+const ROOT_CANISTER_ID: CanisterId = CanisterId::from_u64(3);
+const CYCLES_MINTING_CANISTER_ID: CanisterId = CanisterId::from_u64(4);
+const LIFELINE_CANISTER_ID: CanisterId = CanisterId::from_u64(5);
+const GENESIS_TOKEN_CANISTER_ID: CanisterId = CanisterId::from_u64(6);
+const IDENTITY_CANISTER_ID: CanisterId = CanisterId::from_u64(7);
+const NNS_UI_CANISTER_ID: CanisterId = CanisterId::from_u64(8);
 
+//struct Actor
 
-#[export_name = "canister_update increment"]
-fn increment() {
-    over(candid, |()| increment_())
+// management canister(virtual)
+trait IC00 {
+    fn canister_status() -> CanisterStatusResult;
+
 }
 
-#[candid_method(update, rename = "increment")]
-fn increment_() {
-    unsafe {
-        COUNTER += 1u64;
-    }
+trait Registry {
+
 }
 
-#[export_name = "canister_query get"]
-fn get() {
-    over(candid, |()| -> u64 {
-        get_()
-    })
-}
 
-#[candid_method(query, rename = "get")]
-fn get_() -> u64 {
-    unsafe {
-        COUNTER
-    }
-}
 
-#[export_name = "canister_update sum2"]
-fn combine2() {
-    over(candid, |(a, b): (u64, u64)| -> u64 {
-        sum2_(a, b)
-    })
-}
-
-#[candid_method(update, rename = "sum2")]
-fn sum2_(a: u64, b: u64) -> u64 {
-    unsafe {
-        let x = a + b;
-        COUNTER = x;
-        COUNTER
-    }
-}
-
-#[export_name = "canister_update balance"]
+#[export_name = "canister_query balance"]
 fn balance() {
     over_async(candid_one, | account: AccountBalanceArgs| {
         account_balance(account)
     })
 }
 
-#[candid_method(update, rename = "balance")]
+#[candid_method(query, rename = "balance")]
 async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
     let result: Result<ICPTs, (Option<i32>, String)> = call_with_cleanup(
-        LEDGER,
+        LEDGER_CANISTER_ID,
         "account_balance_pb",
         protobuf,
         account
@@ -74,17 +55,17 @@ async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
     result.unwrap()
 }
 
-#[export_name = "canister_update block"]
+#[export_name = "canister_query block"]
 fn block() {
     over_async(candid_one, | bh: BlockHeight| {
         get_block_from_ledger(bh)
     })
 }
 
-#[candid_method(update, rename = "block")]
+#[candid_method(query, rename = "block")]
 async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
     let res: Result<BlockRes, (Option<i32>, String)> = call_with_cleanup(
-        LEDGER,
+        LEDGER_CANISTER_ID,
         "block_pb",
         protobuf,
         block_height

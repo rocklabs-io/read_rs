@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 
 [dependencies]
+ic-nns-handler-root = { git="https://github.com/dfinity/ic" }
 ledger-canister = { git="https://github.com/dfinity/ic" }
 dfn_core = { git="https://github.com/dfinity/ic" }
 dfn_protobuf = { git="https://github.com/dfinity/ic" }

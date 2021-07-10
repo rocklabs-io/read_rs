@@ -18,9 +18,6 @@ type Transfer = variant {
   Send : record { to : text; fee : ICPTs; from : text; amount : ICPTs };
 };
 service : {
-  balance : (AccountBalanceArgs) -> (ICPTs);
-  block : (nat64) -> (Block);
-  get : () -> (nat64) query;
-  increment : () -> ();
-  sum2 : (nat64, nat64) -> (nat64);
+  balance : (AccountBalanceArgs) -> (ICPTs) query;
+  block : (nat64) -> (Block) query;
 }

@@ -1,8 +1,9 @@
-use dfn_core::{api::call_with_cleanup, over, over_async};
+use dfn_core::{api::{call_with_cleanup, id, caller, canister_cycle_balance, canister_status}, over, over_async};
 use dfn_protobuf::{protobuf, ProtoBuf};
 use ic_types::CanisterId;
-use candid::{CandidType, candid_method};
+use candid::{CandidType, Deserialize, candid_method};
 use dfn_candid::{candid, candid_one};
+use ic_registry_transport::pb::v1::{RegistryGetChangesSinceRequest, CertifiedResponse};
 use ic_nns_handler_root::{
     common::{CanisterIdRecord, CanisterStatusResult}};
 use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs, 
@@ -10,7 +11,6 @@ use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs,
 };
 
 
-const IC_00: CanisterId = CanisterId::ic_00();
 const REGISTRY_CANISTER_ID: CanisterId = CanisterId::from_u64(0);
 const GOVERNANCE_CANISTER_ID: CanisterId = CanisterId::from_u64(1);
 const LEDGER_CANISTER_ID: CanisterId = CanisterId::from_u64(2);
@@ -21,19 +21,56 @@ const GENESIS_TOKEN_CANISTER_ID: CanisterId = CanisterId::from_u64(6);
 const IDENTITY_CANISTER_ID: CanisterId = CanisterId::from_u64(7);
 const NNS_UI_CANISTER_ID: CanisterId = CanisterId::from_u64(8);
 
-//struct Actor
 
-// management canister(virtual)
-trait IC00 {
-    fn canister_status() -> CanisterStatusResult;
-
+// registry
+#[export_name = "canister_query get_changes_since"]
+fn get_changes_since_read_() {
+    over_async(candid_one, |req: RegistryGetChangesSinceRequest| {
+        get_changes_since_read(req)
+    })
 }
 
-trait Registry {
+#[candid_method(query, rename = "get_certified_changes_since")]
+async fn get_changes_since_read(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
+    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_certified_changes_since", 
+        protobuf, 
+        req
+    )
+    .await;
 
+    result.unwrap()
+ }
+
+#[export_name = "canister_query get_certified_changes_since"]
+fn get_changes_since_certified_read_() {
+    over_async(candid_one, |req: RegistryGetChangesSinceRequest| {
+        get_changes_since_certified_read(req)
+    })
 }
 
+#[candid_method(query, rename = "get_certified_changes_since")]
+async fn get_changes_since_certified_read(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
+    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_certified_changes_since", 
+        protobuf, 
+        req
+    )
+    .await;
 
+    result.unwrap()
+ }
+
+// governance
+// ledger
+// root
+// cycles-minting
+// lifeline
+// genesis-token
+// identity
+// nns-ui
 
 #[export_name = "canister_query balance"]
 fn balance() {

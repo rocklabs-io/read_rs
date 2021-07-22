@@ -11,13 +11,12 @@ path = "src/main.rs"
 
 
 [dependencies]
-ic-nns-handler-root = { git="https://github.com/dfinity/ic" }
-ledger-canister = { git="https://github.com/dfinity/ic" }
-dfn_core = { git="https://github.com/dfinity/ic" }
-dfn_protobuf = { git="https://github.com/dfinity/ic" }
-dfn_candid = { git="https://github.com/dfinity/ic" }
-ic-types = { git="https://github.com/dfinity/ic" }
+ic-nns-handler-root = { git="https://github.com/flyq/ic" }
+ledger-canister = { git="https://github.com/flyq/ic" }
+dfn_core = { git="https://github.com/flyq/ic" }
+dfn_protobuf = { git="https://github.com/flyq/ic" }
+dfn_candid = { git="https://github.com/flyq/ic" }
+ic-types = { git="https://github.com/flyq/ic" }
+ic-registry-transport = { git="https://github.com/flyq/ic" }
 serde = "1.0"
-# ic-cdk = { version = "0.2.4", default-features = false }
-# ic-cdk-macro = { version = "0.2.4", default-features = false }
 candid = "0.6.15"

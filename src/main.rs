@@ -23,25 +23,25 @@ const NNS_UI_CANISTER_ID: CanisterId = CanisterId::from_u64(8);
 
 
 // registry
-#[export_name = "canister_query get_changes_since"]
-fn get_changes_since_read_() {
-    over_async(candid_one, |req: RegistryGetChangesSinceRequest| {
-        get_changes_since_read(req)
-    })
-}
+// #[export_name = "canister_query get_changes_since"]
+// fn get_changes_since_read_() {
+//     over_async(candid_one, |req: RegistryGetChangesSinceRequest| {
+//         get_changes_since_read(req)
+//     })
+// }
 
-#[candid_method(query, rename = "get_certified_changes_since")]
-async fn get_changes_since_read(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
-    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
-        REGISTRY_CANISTER_ID, 
-        "get_certified_changes_since", 
-        protobuf, 
-        req
-    )
-    .await;
+// #[candid_method(query, rename = "get_certified_changes_since")]
+// async fn get_changes_since_read(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
+//     let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
+//         REGISTRY_CANISTER_ID, 
+//         "get_certified_changes_since", 
+//         protobuf, 
+//         req
+//     )
+//     .await;
 
-    result.unwrap()
- }
+//     result.unwrap()
+//  }
 
 #[export_name = "canister_query get_certified_changes_since"]
 fn get_changes_since_certified_read_() {

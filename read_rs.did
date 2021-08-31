@@ -20,4 +20,5 @@ type Transfer = variant {
 service : {
   balance : (AccountBalanceArgs) -> (ICPTs) query;
   block : (nat64) -> (Block) query;
+  now_index : () -> (nat64, nat64) query;
 }

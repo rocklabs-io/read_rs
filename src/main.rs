@@ -1,6 +1,5 @@
 use dfn_core::{api::{call_with_cleanup, id, caller, canister_cycle_balance, canister_status}, over, over_async};
 use dfn_protobuf::{protobuf, ProtoBuf};
-use ic_types::CanisterId;
 use candid::{CandidType, Deserialize, candid_method};
 use dfn_candid::{candid, candid_one};
 use ic_registry_transport::pb::v1::{RegistryGetChangesSinceRequest, CertifiedResponse};
@@ -9,7 +8,10 @@ use ic_nns_handler_root::{
 use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs, 
     account_identifier::AccountIdentifier, icpts::ICPTs, BlockHeight
 };
+use ic_base_types::{CanisterId, PrincipalId, PrincipalIdParseError, PrincipalIdBlobParseError, CanisterIdError};
+use std::convert::TryInto;
 
+const CRC_LENGTH_IN_BYTES: usize = 4;
 
 const REGISTRY_CANISTER_ID: CanisterId = CanisterId::from_u64(0);
 const GOVERNANCE_CANISTER_ID: CanisterId = CanisterId::from_u64(1);
@@ -113,6 +115,28 @@ async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
     block
 }
 
+#[export_name = "canister_query now_index"]
+fn now_index() {
+    over_async(candid_one, |_: ()| {
+        now_index_()
+    })
+}
+
+#[candid_method(query, rename = "now_index")]
+async fn now_index_() -> (u64, u64) {
+    let test_canister_id: CanisterId = canister_from_str("ywrdt-7aaaa-aaaah-qaaaa-cai").unwrap();
+
+    let result: Result<(u64, u64), (Option<i32>, String)> = call_with_cleanup(
+        test_canister_id,
+        "get_now_index",
+        candid_one,
+        (),
+    )
+    .await;
+
+    result.unwrap()
+}
+
 #[cfg(any(target_arch = "wasm32", test))]
 fn main() {}
 
@@ -120,4 +144,45 @@ fn main() {}
 fn main() {
     candid::export_service!();
     std::print!("{}", __export_service());
+}
+
+fn canister_from_str(input: &str) -> Result<CanisterId, CanisterIdError> {
+    let principal_id =
+        principal_from_str(input).map_err(CanisterIdError::PrincipalIdParseError)?;
+    CanisterId::new(principal_id)
+}
+
+fn principal_from_str(input: &str) -> Result<PrincipalId, PrincipalIdParseError> {
+    // Strategy: Parse very liberally, then pretty-print and compare output.
+    // This is both simpler and yields better error messages.
+    let mut s = input.to_string();
+    s.make_ascii_lowercase();
+    s.retain(|c| c.is_ascii_alphanumeric());
+    match base32::decode(base32::Alphabet::RFC4648 { padding: false }, &s) {
+        Some(mut bytes) => {
+            if bytes.len() < CRC_LENGTH_IN_BYTES {
+                return Err(PrincipalIdParseError::TooShort);
+            }
+            if bytes.len() > PrincipalId::MAX_LENGTH_IN_BYTES + CRC_LENGTH_IN_BYTES {
+                return Err(PrincipalIdParseError::TooLong);
+            }
+            let result =
+                try_from(&bytes.split_off(CRC_LENGTH_IN_BYTES)[..]).unwrap();
+            let expected = format!("{}", result);
+            if input != expected {
+                return Err(PrincipalIdParseError::Wrong { expected });
+            }
+            Ok(result)
+        }
+        None => Err(PrincipalIdParseError::NotBase32),
+    }
+}
+
+fn try_from(blob: &[u8]) -> Result<PrincipalId, PrincipalIdBlobParseError> {
+    // if blob.len() != PrincipalId::MAX_LENGTH_IN_BYTES {
+    //     return Err(PrincipalIdBlobParseError::TooLong(blob.len()));
+    // }
+    let mut data = [0u8; PrincipalId::MAX_LENGTH_IN_BYTES];
+    data[..blob.len()].copy_from_slice(&blob[..]);
+    Ok(PrincipalId::new(blob.len(), data))
 }

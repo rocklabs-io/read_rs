@@ -3,7 +3,7 @@
     "read_rs": {
       "type": "custom",
       "build": "cargo build --target wasm32-unknown-unknown --release",
-      "candid": "src/read_rs.did",
+      "candid": "./read_rs.did",
       "wasm": "./read_rs_opt.wasm"
     }
   },

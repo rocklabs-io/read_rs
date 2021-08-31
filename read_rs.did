@@ -4,19 +4,8 @@ type Block = record {
   timestamp : TimeStamp;
   parent_hash : opt HashOf;
 };
-type CertifiedResponse = record {
-  certificate : vec nat8;
-  hash_tree : opt MixedHashTree;
-};
-type Fork = record {
-  right_tree : opt MixedHashTree;
-  left_tree : opt MixedHashTree;
-};
 type HashOf = record { inner : vec nat8 };
 type ICPTs = record { e8s : nat64 };
-type Labeled = record { subtree : opt MixedHashTree; label : vec nat8 };
-type MixedHashTree = record { tree_enum : opt TreeEnum };
-type RegistryGetChangesSinceRequest = record { version : nat64 };
 type TimeStamp = record { timestamp_nanos : nat64 };
 type Transaction = record {
   memo : nat64;
@@ -28,17 +17,7 @@ type Transfer = variant {
   Mint : record { to : text; amount : ICPTs };
   Send : record { to : text; fee : ICPTs; from : text; amount : ICPTs };
 };
-type TreeEnum = variant {
-  Empty;
-  LeafData : vec nat8;
-  PrunedDigest : vec nat8;
-  Fork : Fork;
-  Labeled : Labeled;
-};
 service : {
   balance : (AccountBalanceArgs) -> (ICPTs) query;
   block : (nat64) -> (Block) query;
-  get_certified_changes_since : (RegistryGetChangesSinceRequest) -> (
-      CertifiedResponse,
-    ) query;
 }

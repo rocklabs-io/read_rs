@@ -22,9 +22,7 @@ dfx config --help
 
 ## build
 ```sh
-cargo build --release
-
-./target/release/read_rs > read_rs.did
+cargo run > read_rs.did
 
 cargo build --release --target wasm32-unknown-unknown
 

@@ -83,8 +83,10 @@ fn balance() {
 
 #[candid_method(query, rename = "balance")]
 async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
+    let ledger: CanisterId = canister_from_str("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap();
+
     let result: Result<ICPTs, (Option<i32>, String)> = call_with_cleanup(
-        LEDGER_CANISTER_ID,
+        ledger,
         "account_balance_pb",
         protobuf,
         account
@@ -103,8 +105,10 @@ fn block() {
 
 #[candid_method(query, rename = "block")]
 async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
+    let ledger: CanisterId = canister_from_str("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap();
+
     let res: Result<BlockRes, (Option<i32>, String)> = call_with_cleanup(
-        LEDGER_CANISTER_ID,
+        ledger,
         "block_pb",
         protobuf,
         block_height
@@ -117,7 +121,7 @@ async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
 
 #[export_name = "canister_query now_index"]
 fn now_index() {
-    over_async(candid_one, |_: ()| {
+    over_async(candid, |()| {
         now_index_()
     })
 }

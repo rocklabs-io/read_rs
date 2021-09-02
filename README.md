@@ -42,6 +42,9 @@ go to the local-dev
 ```sh
 cd local-dev/
 
+dfx identity use admin
+
+
 sudo dfx canister --no-wallet create --all
 
 dfx identity use minting

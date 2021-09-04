@@ -2,7 +2,7 @@ use dfn_core::{api::{call_with_cleanup, id, caller, canister_cycle_balance, cani
 use dfn_protobuf::{protobuf, ProtoBuf};
 use candid::{CandidType, Deserialize, candid_method};
 use dfn_candid::{candid, candid_one};
-use ic_registry_transport::pb::v1::{RegistryGetChangesSinceRequest, CertifiedResponse};
+use ic_registry_transport::pb::v1::{RegistryGetChangesSinceRequest, RegistryGetChangesSinceResponse, CertifiedResponse, RegistryGetValueRequest, RegistryGetValueResponse, RegistryGetLatestVersionResponse};
 use ic_nns_handler_root::{
     common::{CanisterIdRecord, CanisterStatusResult}};
 use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs, 
@@ -10,6 +10,8 @@ use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs,
 };
 use ic_base_types::{CanisterId, PrincipalId, PrincipalIdParseError, PrincipalIdBlobParseError, CanisterIdError};
 use std::convert::TryInto;
+use ic_cdk_macros::*;
+
 
 const CRC_LENGTH_IN_BYTES: usize = 4;
 
@@ -24,46 +26,97 @@ const IDENTITY_CANISTER_ID: CanisterId = CanisterId::from_u64(7);
 const NNS_UI_CANISTER_ID: CanisterId = CanisterId::from_u64(8);
 
 
-// registry
-// #[export_name = "canister_query get_changes_since"]
-// fn get_changes_since_read_() {
-//     over_async(candid_one, |req: RegistryGetChangesSinceRequest| {
-//         get_changes_since_read(req)
-//     })
-// }
+// regestry
+#[update]
+#[candid_method(update)]
+async fn get_changes_since(req: RegistryGetChangesSinceRequest) -> RegistryGetChangesSinceResponse {
+    let result: Result<RegistryGetChangesSinceResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_changes_since", 
+        protobuf, 
+        req
+    )
+    .await;
 
-// #[candid_method(query, rename = "get_certified_changes_since")]
-// async fn get_changes_since_read(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
-//     let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
-//         REGISTRY_CANISTER_ID, 
-//         "get_certified_changes_since", 
-//         protobuf, 
-//         req
-//     )
-//     .await;
+    result.unwrap()
+ }
 
-//     result.unwrap()
-//  }
+#[update]
+#[candid_method(update)]
+async fn get_certified_changes_since(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
+    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_certified_changes_since", 
+        protobuf, 
+        req
+    )
+    .await;
 
-// #[export_name = "canister_query get_certified_changes_since"]
-// fn get_changes_since_certified_read_() {
-//     over_async(candid_one, |req: RegistryGetChangesSinceRequest| {
-//         get_changes_since_certified_read(req)
-//     })
-// }
+    result.unwrap()
+}
 
-// #[candid_method(query, rename = "get_certified_changes_since")]
-// async fn get_changes_since_certified_read(req: RegistryGetChangesSinceRequest) -> CertifiedResponse {
-//     let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
-//         REGISTRY_CANISTER_ID, 
-//         "get_certified_changes_since", 
-//         protobuf, 
-//         req
-//     )
-//     .await;
+#[update]
+#[candid_method(update)]
+async fn get_value(req: RegistryGetValueRequest) -> RegistryGetValueResponse {
+    let result: Result<RegistryGetValueResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_value", 
+        protobuf, 
+        req
+    )
+    .await;
 
-//     result.unwrap()
-//  }
+    result.unwrap()
+}
+
+#[update]
+#[candid_method(update)]
+async fn get_latest_version() -> RegistryGetLatestVersionResponse {
+    let result: Result<RegistryGetLatestVersionResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_latest_version", 
+        protobuf, 
+        ()
+    )
+    .await;
+
+    result.unwrap()
+}
+
+#[update]
+#[candid_method(update)]
+async fn get_latest_version_certified() -> CertifiedResponse {
+    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_latest_version_certified", 
+        protobuf, 
+        ()
+    )
+    .await;
+
+    result.unwrap()
+}
+
+#[update]
+#[candid_method(update)]
+async fn get_latest_version_certified() -> CertifiedResponse {
+    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
+        REGISTRY_CANISTER_ID, 
+        "get_latest_version_certified", 
+        protobuf, 
+        ()
+    )
+    .await;
+
+    result.unwrap()
+}
+
+
+
+
+
+
+
 
 // governance
 // ledger

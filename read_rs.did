@@ -66,4 +66,5 @@ service : {
   get_latest_version : () -> (RegistryGetChangesSinceRequest);
   get_now_index : () -> (nat64);
   get_value : (RegistryGetValueRequest) -> (RegistryGetValueResponse);
+  total_supply_pb : () -> (ICPTs);
 }

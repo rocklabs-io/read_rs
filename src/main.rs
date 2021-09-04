@@ -124,6 +124,20 @@ async fn account_balance_pb(account: AccountBalanceArgs) -> ICPTs {
     result.unwrap()
 }
 
+#[update]
+#[candid_method(update)]
+async fn total_supply_pb() -> ICPTs {
+    let result: Result<ICPTs, (Option<i32>, String)> = call_with_cleanup(
+        LEDGER_CANISTER_ID,
+        "total_supply_pb",
+        protobuf,
+        ()
+    )
+    .await;
+
+    result.unwrap()
+}
+
 
 #[update]
 #[candid_method(update)]

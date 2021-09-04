@@ -41,7 +41,8 @@ dfx canister --no-wallet --network ic call read_rs get_latest_version
 dfx canister --no-wallet --network ic call read_rs account_balance_pb '(record {account="073ca335431d6b6f6916068b5784a241730d2e3452ae650025b4bf7a975a81f0"})'
 (record { e8s = 47_110_000 : nat64 })
 
-dfx canister --no-wallet --network ic call read_rs block_pb '(507504:nat64)'(
+dfx canister --no-wallet --network ic call read_rs block_pb '(507504:nat64)'
+(
   record {
     transaction = record {
       memo = 182_884_116_570_714_352 : nat64;
@@ -63,5 +64,8 @@ dfx canister --no-wallet --network ic call read_rs block_pb '(507504:nat64)'(
     };
   },
 )
+
+dfx canister --no-wallet --network ic call read_rs total_supply_pb
+(record { e8s = 47_278_350_104_315_648 : nat64 })
 
 ```

@@ -4,8 +4,37 @@ type Block = record {
   timestamp : TimeStamp;
   parent_hash : opt HashOf;
 };
+type CertifiedResponse = record {
+  certificate : vec nat8;
+  hash_tree : opt MixedHashTree;
+};
+type Fork = record {
+  right_tree : opt MixedHashTree;
+  left_tree : opt MixedHashTree;
+};
 type HashOf = record { inner : vec nat8 };
 type ICPTs = record { e8s : nat64 };
+type Labeled = record { subtree : opt MixedHashTree; label : vec nat8 };
+type MixedHashTree = record { tree_enum : opt TreeEnum };
+type RegistryDelta = record { key : vec nat8; values : vec RegistryValue };
+type RegistryError = record { key : vec nat8; code : int32; reason : text };
+type RegistryGetChangesSinceRequest = record { version : nat64 };
+type RegistryGetChangesSinceResponse = record {
+  deltas : vec RegistryDelta;
+  error : opt RegistryError;
+  version : nat64;
+};
+type RegistryGetValueRequest = record { key : vec nat8; version : opt nat64 };
+type RegistryGetValueResponse = record {
+  value : vec nat8;
+  error : opt RegistryError;
+  version : nat64;
+};
+type RegistryValue = record {
+  value : vec nat8;
+  version : nat64;
+  deletion_marker : bool;
+};
 type TimeStamp = record { timestamp_nanos : nat64 };
 type Transaction = record {
   memo : nat64;
@@ -17,8 +46,24 @@ type Transfer = variant {
   Mint : record { to : text; amount : ICPTs };
   Send : record { to : text; fee : ICPTs; from : text; amount : ICPTs };
 };
+type TreeEnum = variant {
+  Empty;
+  LeafData : vec nat8;
+  PrunedDigest : vec nat8;
+  Fork : Fork;
+  Labeled : Labeled;
+};
 service : {
-  balance : (AccountBalanceArgs) -> (ICPTs) query;
-  block : (nat64) -> (Block) query;
-  now_index : () -> (nat64, nat64) query;
+  account_balance_pb : (AccountBalanceArgs) -> (ICPTs);
+  block_pb : (nat64) -> (Block);
+  get_certified_changes_since : (RegistryGetChangesSinceRequest) -> (
+      CertifiedResponse,
+    );
+  get_certified_latest_version : () -> (CertifiedResponse);
+  get_changes_since : (RegistryGetChangesSinceRequest) -> (
+      RegistryGetChangesSinceResponse,
+    );
+  get_latest_version : () -> (RegistryGetChangesSinceRequest);
+  get_now_index : () -> (nat64);
+  get_value : (RegistryGetValueRequest) -> (RegistryGetValueResponse);
 }

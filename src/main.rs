@@ -1,6 +1,6 @@
-use dfn_core::{api::{call_with_cleanup, id, caller, canister_cycle_balance, canister_status}, over, over_async};
+use dfn_core::{api::{call_with_cleanup, id, caller, canister_cycle_balance, canister_status}};
 use dfn_protobuf::{protobuf, ProtoBuf};
-use candid::{CandidType, Deserialize, candid_method};
+use candid::{CandidType, Deserialize, types::ic_types::PrincipalError, candid_method};
 use dfn_candid::{candid, candid_one};
 use ic_registry_transport::pb::v1::{RegistryGetChangesSinceRequest, RegistryGetChangesSinceResponse, CertifiedResponse, RegistryGetValueRequest, RegistryGetValueResponse, RegistryGetLatestVersionResponse};
 use ic_nns_handler_root::{
@@ -11,6 +11,8 @@ use ledger_canister::{Block, EncodedBlock, BlockRes, AccountBalanceArgs,
 use ic_base_types::{CanisterId, PrincipalId, PrincipalIdParseError, PrincipalIdBlobParseError, CanisterIdError};
 use std::convert::TryInto;
 use ic_cdk_macros::*;
+use ic_cdk::{export::{Principal, candid}, api};
+
 
 
 const CRC_LENGTH_IN_BYTES: usize = 4;
@@ -85,10 +87,10 @@ async fn get_latest_version() -> RegistryGetLatestVersionResponse {
 
 #[update]
 #[candid_method(update)]
-async fn get_latest_version_certified() -> CertifiedResponse {
+async fn get_certified_latest_version() -> CertifiedResponse {
     let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
         REGISTRY_CANISTER_ID, 
-        "get_latest_version_certified", 
+        "get_certified_latest_version", 
         protobuf, 
         ()
     )
@@ -96,27 +98,6 @@ async fn get_latest_version_certified() -> CertifiedResponse {
 
     result.unwrap()
 }
-
-#[update]
-#[candid_method(update)]
-async fn get_latest_version_certified() -> CertifiedResponse {
-    let result: Result<CertifiedResponse, (Option<i32>, String)> = call_with_cleanup(
-        REGISTRY_CANISTER_ID, 
-        "get_latest_version_certified", 
-        protobuf, 
-        ()
-    )
-    .await;
-
-    result.unwrap()
-}
-
-
-
-
-
-
-
 
 // governance
 // ledger
@@ -127,15 +108,9 @@ async fn get_latest_version_certified() -> CertifiedResponse {
 // identity
 // nns-ui
 
-#[export_name = "canister_query balance"]
-fn balance() {
-    over_async(candid_one, | account: AccountBalanceArgs| {
-        account_balance(account)
-    })
-}
-
-#[candid_method(query, rename = "balance")]
-async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
+#[update]
+#[candid_method(update)]
+async fn account_balance_pb(account: AccountBalanceArgs) -> ICPTs {
     let ledger: CanisterId = canister_from_str("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap();
 
     let result: Result<ICPTs, (Option<i32>, String)> = call_with_cleanup(
@@ -149,15 +124,10 @@ async fn account_balance(account: AccountBalanceArgs) -> ICPTs {
     result.unwrap()
 }
 
-#[export_name = "canister_query block"]
-fn block() {
-    over_async(candid_one, | bh: BlockHeight| {
-        get_block_from_ledger(bh)
-    })
-}
 
-#[candid_method(query, rename = "block")]
-async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
+#[update]
+#[candid_method(update)]
+async fn block_pb(block_height: BlockHeight) -> Block {
     let ledger: CanisterId = canister_from_str("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap();
 
     let res: Result<BlockRes, (Option<i32>, String)> = call_with_cleanup(
@@ -172,18 +142,12 @@ async fn get_block_from_ledger(block_height: BlockHeight) -> Block {
     block
 }
 
-#[export_name = "canister_query now_index"]
-fn now_index() {
-    over_async(candid, |()| {
-        now_index_()
-    })
-}
-
-#[candid_method(query, rename = "now_index")]
-async fn now_index_() -> (u64, u64) {
+#[update]
+#[candid_method(update)]
+async fn get_now_index() -> u64 {
     let test_canister_id: CanisterId = canister_from_str("ywrdt-7aaaa-aaaah-qaaaa-cai").unwrap();
 
-    let result: Result<(u64, u64), (Option<i32>, String)> = call_with_cleanup(
+    let result: Result<u64, (Option<i32>, String)> = call_with_cleanup(
         test_canister_id,
         "get_now_index",
         candid_one,
@@ -192,6 +156,15 @@ async fn now_index_() -> (u64, u64) {
     .await;
 
     result.unwrap()
+}
+
+#[update]
+async fn call(canister: Principal, method: String) -> candid::Nat {
+    let res = match api::call::call(canister, &method, ()).await {
+        Ok((res,)) => res,
+        Err((_, err)) => panic!(""),
+    };
+    return res;
 }
 
 #[cfg(any(target_arch = "wasm32", test))]
@@ -218,20 +191,20 @@ fn principal_from_str(input: &str) -> Result<PrincipalId, PrincipalIdParseError>
     match base32::decode(base32::Alphabet::RFC4648 { padding: false }, &s) {
         Some(mut bytes) => {
             if bytes.len() < CRC_LENGTH_IN_BYTES {
-                return Err(PrincipalIdParseError::TooShort);
+                return Err(PrincipalIdParseError(PrincipalError::TextTooSmall()));
             }
             if bytes.len() > PrincipalId::MAX_LENGTH_IN_BYTES + CRC_LENGTH_IN_BYTES {
-                return Err(PrincipalIdParseError::TooLong);
+                return Err(PrincipalIdParseError(PrincipalError::BufferTooLong()));
             }
             let result =
                 try_from(&bytes.split_off(CRC_LENGTH_IN_BYTES)[..]).unwrap();
             let expected = format!("{}", result);
             if input != expected {
-                return Err(PrincipalIdParseError::Wrong { expected });
+                return Err(PrincipalIdParseError(PrincipalError::BufferTooLong()));
             }
             Ok(result)
         }
-        None => Err(PrincipalIdParseError::NotBase32),
+        None => Err(PrincipalIdParseError(PrincipalError::BufferTooLong())),
     }
 }
 

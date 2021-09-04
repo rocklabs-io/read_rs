@@ -21,7 +21,7 @@ dfx config --help
 
 
 ## build
-```sh
+```bash
 cargo run > read_rs.did
 
 cargo build --release --target wasm32-unknown-unknown
@@ -30,96 +30,38 @@ ic-cdk-optimizer target/wasm32-unknown-unknown/release/read_rs.wasm -o ./read_rs
 
 ```
 
-## run
+## test
+```bash
+dfx canister --no-wallet --network ic call chu2x-jyaaa-aaaah-aaqra-cai get_now_index
+(16_344 : nat64)
 
-start the runtime:
-```sh
-sudo dfx start --clean
+dfx canister --no-wallet --network ic call read_rs get_latest_version
+(record { version = 17_011 : nat64 })
 
-```
+dfx canister --no-wallet --network ic call read_rs account_balance_pb '(record {account="073ca335431d6b6f6916068b5784a241730d2e3452ae650025b4bf7a975a81f0"})'
+(record { e8s = 47_110_000 : nat64 })
 
-go to the local-dev
-```sh
-cd local-dev/
-
-dfx identity use admin
-
-
-sudo dfx canister --no-wallet create --all
-
-dfx identity use minting
-MINTING_ACCOUNT=\"$(dfx ledger account-id)\"
-MINTING_PRINCIPAL="principal \"$(dfx identity get-principal)\""
-
-dfx identity use alice
-ALICE_ACCOUNT=\"$(dfx ledger account-id)\"
-ALICE_PRINCIPAL="principal \"$(dfx identity get-principal)\""
-
-dfx identity use admin
-ADMIN_ACCOUNT=\"$(dfx ledger account-id)\"
-ADMIN_PRINCIPAL="principal \"$(dfx identity get-principal)\""
-
-AMOUNT=100_000_000_000_000
-dfx canister --no-wallet install 3ledger --argument "record {minting_account=$MINTING_ACCOUNT; initial_values=vec {record{$ADMIN_ACCOUNT;record{e8s=$AMOUNT:nat64;}}}; max_message_size_bytes=null;transaction_window=opt record {secs=300:nat64;nanos=0:nat32};archive_options=null;send_whitelist=vec{};}"
-
-dfx canister --no-wallet call 3ledger send_dfx "record {memo=0:nat64;amount=record{e8s=1000000000000:nat64};fee=record{e8s=10000:nat64};from_subaccount=null;to=$ALICE_ACCOUNT;created_at_time=null}"
-```
-
-go to the read_rs
-```sh
-sudo dfx canister --no-wallet create --all
-
-sudo dfx canister --no-wallet install read_rs 
-
-ADMIN_ACCOUNT=\"$(dfx ledger account-id)\"
-
-dfx canister --no-wallet call read_rs balance "(record { account=$ADMIN_ACCOUNT})"
-(record { e8s = 100_000_000_000_000 })
-
-dfx canister --no-wallet call read_rs get
-(1)
-
-dfx canister --no-wallet call read_rs block '(0)'
-(
+dfx canister --no-wallet --network ic call read_rs block_pb '(507504:nat64)'(
   record {
     transaction = record {
-      memo = 0;
-      created_at_time = record { timestamp_nanos = 1_625_564_074_933_651_000 };
-      transfer = variant {
-        Mint = record {
-          to = "02a0703aa42200bf7e9702b652f685a42d2c0b2aba84fcee1a86e4a56ca4ef10";
-          amount = record { e8s = 100_000_000_000_000 };
-        }
+      memo = 182_884_116_570_714_352 : nat64;
+      created_at_time = record {
+        timestamp_nanos = 1_630_776_083_125_587_176 : nat64;
       };
-    };
-    timestamp = record { timestamp_nanos = 1_625_564_074_933_651_000 };
-    parent_hash = null;
-  },
-)
-
-dfx canister --no-wallet call read_rs block '(1)'
-(
-  record {
-    transaction = record {
-      memo = 0;
-      created_at_time = record { timestamp_nanos = 1_625_566_737_203_904_000 };
       transfer = variant {
         Send = record {
-          to = "ca5aa2bfed7d6b28723605d870578397f3c65df5c0a8a9de51af7dd5e6c22638";
-          fee = record { e8s = 10_000 };
-          from = "02a0703aa42200bf7e9702b652f685a42d2c0b2aba84fcee1a86e4a56ca4ef10";
-          amount = record { e8s = 1_000_000_000_000 };
+          to = "4dfa940def17f1427ae47378c440f10185867677109a02bc8374fc25b9dee8af";
+          fee = record { e8s = 10_000 : nat64 };
+          from = "4acd7ec9e1411fd23b2ed84fc173aacd220872408c1ff77a29961ab0f70d6ef6";
+          amount = record { e8s = 32_616_390_000 : nat64 };
         }
       };
     };
-    timestamp = record { timestamp_nanos = 1_625_566_737_203_904_000 };
+    timestamp = record { timestamp_nanos = 1_630_776_086_437_763_870 : nat64 };
     parent_hash = opt record {
-      inner = blob "\a0\05-\e2D\13K\d6>\c8\a2\85h\faM=\8b\dc\b1\a7r\e5\d5\d7U\9f\c0\c2\1f\df\f9^";
+      inner = blob "\eaJ!\c8\17H\94\89\d8\d0z\e9\a0$.\12\d2\d8\0d?\c4\84\be\f3n\a2\8e\14u\0a\af)";
     };
   },
 )
-
-dfx canister --no-wallet call read_rs balance "(record { account=$ADMIN_ACCOUNT})"
-(record { e8s = 98_999_999_990_000 })
 
 ```

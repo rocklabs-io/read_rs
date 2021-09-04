@@ -17,9 +17,10 @@ dfn_core = { git="https://github.com/flyq/ic" }
 dfn_protobuf = { git="https://github.com/flyq/ic" }
 dfn_candid = { git="https://github.com/flyq/ic" }
 ic-base-types = { git="https://github.com/flyq/ic" }
+ic-types = { git="https://github.com/flyq/ic" }
 ic-registry-transport = { git="https://github.com/flyq/ic" }
 ic-cdk-macros = "0.3.1"
 ic-cdk = "0.3.1"
 serde = "1.0"
-candid = "0.6.15"
+candid = "0.7.4"
 base32 = "0.4.0"
